@@ -1,1 +1,1 @@
-# MyShell
+# MyShell is a basic implementation of a shell in C with capabilities to run read(), fork(), exec(), and wait().
