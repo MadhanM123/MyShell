@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -std=c11 -O2 -Wall -Wextra -Wpedantic
+CFLAGS := -std=c17 -O2 -Wall -Wextra -Wpedantic
 
 SRC := src/myshell.c
 OBJ := myshell.o 
