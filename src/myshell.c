@@ -80,6 +80,20 @@ int shell_launch(char** args){
     return 1;
 }
 
+int shell_exec(char** args){
+    if(args[0] == NULL){
+        return 1;
+    }
+
+    for(int i = 0; i < shell_num_builtins(); i++){
+        if(strcmp(args[0], builtin_str[i]) == 0){
+            return (*builtin_func[i])(args);
+        }
+    }
+
+    return shell_launch(args);
+}
+
 #define SHELL_BUFSZ 1024
 char* shell_read_line(void){
     int bufsz = SHELL_BUFSZ;
