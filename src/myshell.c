@@ -1,6 +1,31 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/wait.h>
+
+
+int shell_launch(char** args){
+    __pid_t pid, wpid;
+    int status;
+
+    pid = fork();
+    if(pid == 0){
+        if(execvp(args[0], args) == -1){
+            perror("shell: error");
+        }
+        exit(EXIT_FAILURE);
+    }
+    else if(pid < 0){
+        perror("shell: forking error");
+    }
+    else{
+        do{
+            wpid = waitpid(pid, &status, WUNTRACED);
+        } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+    }
+
+    return 1;
+}
 
 #define SHELL_BUFSZ 1024
 char* shell_read_line(void){
