@@ -1,15 +1,20 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/wait.h>
 
-// Builtin Shell Command Forward Declarations
+#define SHELL_BUFSZ 1024
+#define SHELL_TOK_BUFSZ 64
+#define SHELL_TOK_DELIM " \t\r\n\a"
+
+// Built-in Shell Command Forward Declarations
 
 int shell_cd(char** args);
-int shell_help(char** args);
-int shell_exit(char** args);
+int shell_help();
+int shell_exit();
 
-// Builtin Shell Command Names
+// Built-in Shell Command Names
 
 char* builtin_str[] = {
     "cd",
@@ -39,7 +44,7 @@ int shell_cd(char** args){
     return 1;
 }
 
-int shell_help(char** args){
+int shell_help(){
     printf("Madhan's Shell\n");
     printf("Type program names and arguments, and enter.\n");
     printf("The following are built in:\n");
@@ -52,7 +57,7 @@ int shell_help(char** args){
     return 1;
 }
 
-int shell_exit(char** args){
+int shell_exit(){
     return 0;
 }
 
@@ -94,7 +99,6 @@ int shell_exec(char** args){
     return shell_launch(args);
 }
 
-#define SHELL_BUFSZ 1024
 char* shell_read_line(void){
     int bufsz = SHELL_BUFSZ;
     int pos = 0;
@@ -129,6 +133,39 @@ char* shell_read_line(void){
     }
 }
 
+char** shell_parse_line(char* line){
+    int bufsz = SHELL_BUFSZ, pos = 0;
+    char** toks = malloc(bufsz * sizeof(char*));
+    char* tok, **toks_back;
+
+    if(!toks){
+        fprintf(stderr, "shell: allocation error\n");
+        exit(EXIT_FAILURE);
+    }
+
+    tok = strtok(line, SHELL_TOK_DELIM);
+    while(tok != NULL){
+        toks[pos] = tok;
+        pos++;
+
+        if(pos >= bufsz){
+            bufsz += SHELL_TOK_BUFSZ;
+            toks_back = toks;
+            toks = realloc(toks, bufsz * sizeof(char*));
+            if(!toks){
+                fprintf(stderr, "shell: allocation error\n");
+                exit(EXIT_FAILURE);
+            }
+        }
+
+        tok = strtok(NULL, SHELL_TOK_DELIM);
+    }
+
+    toks[pos] = NULL;
+    return toks;
+    
+}
+
 
 void shell_loop(void){
     char* line;
@@ -138,7 +175,7 @@ void shell_loop(void){
     do {
         printf("> ");
         line = shell_read_line();
-        args = shell_parse_line();
+        args = shell_parse_line(line);
         status = shell_exec(args);
 
         free(line);
