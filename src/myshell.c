@@ -4,17 +4,41 @@
 #include <string.h>
 #include <sys/wait.h>
 
-#define SHELL_BUFSZ 1024
-#define SHELL_TOK_BUFSZ 64
-#define SHELL_TOK_DELIM " \t\r\n\a"
+#define SHELL_BUFSZ 1024 /**< Buffer size for reading input lines */
+#define SHELL_TOK_BUFSZ 64 /**< Initial buffer size for parsing tokens */
+#define SHELL_TOK_DELIM " \t\r\n\a" /**< Delimiters for tokenizing input */
 
-// Built-in Shell Command Forward Declarations
+/*----------------------------------------------------------------*/
+/* Built-in Shell Command Declarations                            */
+/*----------------------------------------------------------------*/
 
+
+/**
+ * @brief Changes the current working directoy
+ * 
+ * @param args Null-terminated array of arguments. args[0] is "cd", args[1] is target directory.
+ * @return int 1 to continue executing, 0 to terminate the shell.
+ */
 int shell_cd(char** args);
+
+
+/**
+ * @brief Displays helpful information about the shell and it's built-in commands.
+ * 
+ * @return int 1 to continue executing
+ */
 int shell_help();
+
+/**
+ * @brief Exits the shell.
+ * 
+ * @return int 0 to terminate.
+ */
 int shell_exit();
 
-// Built-in Shell Command Names
+/*----------------------------------------------------------------*/
+/* Built-in Shell Command Names and Function Pointers             */
+/*----------------------------------------------------------------*/
 
 char* builtin_str[] = {
     "cd",
@@ -28,10 +52,19 @@ int (*builtin_func[]) (char**) = {
     &shell_exit
 };
 
+
+/**
+ * @brief Gets number of built-in commands.
+ * 
+ * @return int Number of built-ins in builtin_str[]
+ */
 int shell_num_builtins(){
     return sizeof(builtin_str) / sizeof(char*);
 }
 
+/*----------------------------------------------------------------*/
+/* Built-in Shell Command Implementations                         */
+/*----------------------------------------------------------------*/
 int shell_cd(char** args){
     if(args[1] == NULL){
         fprintf(stderr, "shell: expected argument to cd\n");
@@ -61,7 +94,16 @@ int shell_exit(){
     return 0;
 }
 
+/*----------------------------------------------------------------*/
+/* Shell Execution Functions                                      */
+/*----------------------------------------------------------------*/
 
+/**
+ * @brief Launches program by forking and calling execvp from child.
+ * 
+ * @param args Null-terminated array of command arguments.
+ * @return int 1 to continue execution
+ */
 int shell_launch(char** args){
     __pid_t pid;
     int status;
@@ -85,6 +127,12 @@ int shell_launch(char** args){
     return 1;
 }
 
+/**
+ * @brief Executes commands that are built-in, otherwise calls shell_launch()
+ * 
+ * @param args Null-terminated array of command arguments
+ * @return int 0 if shell should exit, 1 if shell should continue execution
+ */
 int shell_exec(char** args){
     if(args[0] == NULL){
         return 1;
@@ -99,6 +147,15 @@ int shell_exec(char** args){
     return shell_launch(args);
 }
 
+/*----------------------------------------------------------------*/
+/* Shell Input Processing Functions                               */
+/*----------------------------------------------------------------*/
+
+/**
+ * @brief Reads a line of input from stdin
+ * 
+ * @return char* Pointer to the read line
+ */
 char* shell_read_line(void){
     int bufsz = SHELL_BUFSZ;
     int pos = 0;
@@ -133,6 +190,12 @@ char* shell_read_line(void){
     }
 }
 
+/**
+ * @brief Parses line of input into tokens
+ * 
+ * @param line Input line
+ * @return char** Null-terminated array of token
+ */
 char** shell_parse_line(char* line){
     int bufsz = SHELL_BUFSZ, pos = 0;
     char** toks = malloc(bufsz * sizeof(char*));
@@ -167,7 +230,19 @@ char** shell_parse_line(char* line){
     
 }
 
+/*----------------------------------------------------------------*/
+/* Shell Control Loop Functions                                   */
+/*----------------------------------------------------------------*/
 
+/**
+ * @brief Main shell loop
+ * Continuously:
+ * - Prints prompt
+ * - Reads input 
+ * - Tokenizes input
+ * - Executes command
+ * - Frees memory
+ */
 void shell_loop(void){
     char* line;
     char** args;
@@ -184,7 +259,13 @@ void shell_loop(void){
     } while(status);
 }
 
-
+/**
+ * @brief Program entry point
+ * 
+ * @param argc Argument count(unused)
+ * @param argv Argument vector(unused)
+ * @return int EXIT_SUCCESS when shell terminates
+ */
 int main(int argc, char** argv){
     //Read and execute configuration files for shell(MyShell doesn't have any)
 
