@@ -63,7 +63,7 @@ int shell_exit(){
 
 
 int shell_launch(char** args){
-    __pid_t pid, wpid;
+    __pid_t pid;
     int status;
 
     pid = fork();
@@ -78,7 +78,7 @@ int shell_launch(char** args){
     }
     else{
         do{
-            wpid = waitpid(pid, &status, WUNTRACED);
+            waitpid(pid, &status, WUNTRACED);
         } while (!WIFEXITED(status) && !WIFSIGNALED(status));
     }
 
@@ -153,6 +153,7 @@ char** shell_parse_line(char* line){
             toks_back = toks;
             toks = realloc(toks, bufsz * sizeof(char*));
             if(!toks){
+                free(toks_back);
                 fprintf(stderr, "shell: allocation error\n");
                 exit(EXIT_FAILURE);
             }
